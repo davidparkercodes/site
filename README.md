@@ -17,3 +17,4 @@ MDX files live in content/articles. Use `npm run new:article "My Title"` to crea
 ## Deployment
 Configured for GitHub Pages. On push to main, CI builds and publishes.
 
+
