@@ -16,9 +16,6 @@ html.dark {
 }
 
 /* Typography defaults */
-.prose {
-  @apply max-w-none;
-}
 
 /* Code blocks: dark synthwave styling */
 .prose pre,
