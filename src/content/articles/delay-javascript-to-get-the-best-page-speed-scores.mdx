@@ -1,0 +1,499 @@
+---
+title: Delay JavaScript to Get the Best Page Speed Scores
+description: How strategic JavaScript deferral and lazy loading can transform your Core Web Vitals and achieve perfect Lighthouse scores.
+pubDate: 2025-01-09
+tags: [Performance, JavaScript, Web Optimization, Core Web Vitals]
+draft: false
+---
+
+Getting a perfect 100 on Lighthouse isn't just about bragging rights—it's about delivering the fastest possible experience to your users. The single most impactful optimization? Delaying non-critical JavaScript until after your page becomes interactive.
+
+## The JavaScript Performance Problem
+
+Modern web applications are drowning in JavaScript. The average website ships over 400KB of compressed JavaScript, which balloons to over 1MB when uncompressed. Every byte delays:
+
+- **First Contentful Paint (FCP)**: When users see something
+- **Largest Contentful Paint (LCP)**: When the main content loads
+- **Time to Interactive (TTI)**: When users can actually use your site
+- **Total Blocking Time (TBT)**: How long the main thread is blocked
+
+The solution isn't using less JavaScript—it's loading it smarter.
+
+## Understanding the Render-Blocking Problem
+
+When the browser encounters a `<script>` tag, it:
+1. Stops parsing HTML
+2. Downloads the script (if external)
+3. Compiles and executes the JavaScript
+4. Resumes HTML parsing
+
+This happens even for scripts that aren't needed for the initial render:
+
+```html
+<!-- These all block rendering -->
+<script src="analytics.js"></script>
+<script src="chat-widget.js"></script>
+<script src="social-share.js"></script>
+<script src="newsletter-popup.js"></script>
+```
+
+## The Delay Loading Strategy
+
+Instead of loading everything upfront, we load JavaScript in three phases:
+
+### Phase 1: Critical Path (Immediate)
+Only JavaScript absolutely required for initial render:
+- CSS-in-JS critical styles
+- Polyfills for core functionality
+- Hydration for server-rendered content
+
+### Phase 2: Interactive Path (On Load)
+JavaScript needed for core interactivity:
+- Main application bundles
+- Primary user interaction handlers
+- Above-the-fold component logic
+
+### Phase 3: Enhancement Path (On Idle)
+Everything else:
+- Analytics
+- Third-party widgets
+- Below-the-fold functionality
+- Nice-to-have features
+
+## Implementation Techniques
+
+### 1. Native Browser Attributes
+
+The simplest approach uses `defer` and `async`:
+
+```html
+<!-- Downloads in parallel, executes after DOM -->
+<script defer src="app.js"></script>
+
+<!-- Downloads in parallel, executes immediately -->
+<script async src="analytics.js"></script>
+```
+
+But this isn't enough for perfect scores. We need more control.
+
+### 2. Dynamic Script Loading
+
+Load scripts programmatically after page load:
+
+```javascript
+function loadScript(src, options = {}) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    
+    if (options.async) script.async = true;
+    if (options.defer) script.defer = true;
+    if (options.module) script.type = 'module';
+    
+    script.onload = resolve;
+    script.onerror = reject;
+    
+    document.head.appendChild(script);
+  });
+}
+
+// Load after window load event
+window.addEventListener('load', () => {
+  loadScript('/js/analytics.js');
+  loadScript('/js/chat-widget.js');
+});
+```
+
+### 3. Intersection Observer for Lazy Loading
+
+Load JavaScript when elements become visible:
+
+```javascript
+const lazyLoadScript = (element, scriptSrc) => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        loadScript(scriptSrc).then(() => {
+          // Initialize the feature
+          window.initializeWidget?.(element);
+        });
+        observer.unobserve(element);
+      }
+    });
+  }, {
+    rootMargin: '50px' // Start loading 50px before visible
+  });
+  
+  observer.observe(element);
+};
+
+// Usage
+document.querySelectorAll('[data-lazy-script]').forEach(element => {
+  const scriptSrc = element.dataset.lazyScript;
+  lazyLoadScript(element, scriptSrc);
+});
+```
+
+### 4. User Interaction Triggers
+
+Delay until user interaction for maximum performance:
+
+```javascript
+class InteractionLoader {
+  constructor() {
+    this.loaded = new Set();
+    this.loading = new Map();
+  }
+  
+  loadOnInteraction(triggerEvents = ['mousedown', 'touchstart', 'scroll']) {
+    const handler = () => {
+      triggerEvents.forEach(event => {
+        document.removeEventListener(event, handler);
+      });
+      this.loadEnhancements();
+    };
+    
+    triggerEvents.forEach(event => {
+      document.addEventListener(event, handler, { once: true, passive: true });
+    });
+  }
+  
+  async loadEnhancements() {
+    const scripts = [
+      '/js/animations.js',
+      '/js/tooltips.js',
+      '/js/modals.js'
+    ];
+    
+    await Promise.all(scripts.map(src => this.load(src)));
+  }
+  
+  async load(src) {
+    if (this.loaded.has(src)) return;
+    
+    if (this.loading.has(src)) {
+      return this.loading.get(src);
+    }
+    
+    const promise = loadScript(src);
+    this.loading.set(src, promise);
+    
+    await promise;
+    this.loaded.add(src);
+    this.loading.delete(src);
+  }
+}
+
+const loader = new InteractionLoader();
+loader.loadOnInteraction();
+```
+
+### 5. RequestIdleCallback for Non-Critical Scripts
+
+Load when the browser is idle:
+
+```javascript
+function loadWhenIdle(callback, timeout = 2000) {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(callback, { timeout });
+  } else {
+    setTimeout(callback, 0);
+  }
+}
+
+loadWhenIdle(() => {
+  // Load analytics
+  loadScript('https://www.google-analytics.com/analytics.js');
+  
+  // Load error tracking
+  loadScript('https://browser.sentry-cdn.com/bundle.min.js');
+  
+  // Load customer support chat
+  loadScript('https://widget.intercom.io/widget.js');
+});
+```
+
+### 6. Progressive Enhancement Pattern
+
+Build functionality in layers:
+
+```html
+<!-- Works without JavaScript -->
+<form action="/subscribe" method="POST" class="newsletter-form">
+  <input type="email" name="email" required>
+  <button type="submit">Subscribe</button>
+</form>
+
+<script>
+// Enhance when JavaScript loads
+loadWhenIdle(() => {
+  import('./newsletter-enhancement.js').then(module => {
+    module.enhanceNewsletterForm('.newsletter-form');
+  });
+});
+</script>
+```
+
+## Third-Party Script Optimization
+
+Third-party scripts are performance killers. Here's how to tame them:
+
+### Google Analytics with Partytown
+
+Move scripts to a web worker:
+
+```html
+<script type="text/partytown" src="https://www.googletagmanager.com/gtag/js"></script>
+<script type="text/partytown">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+```
+
+### Facade Pattern for Embedded Content
+
+Replace heavy embeds with lightweight facades:
+
+```javascript
+class YouTubeFacade {
+  constructor(videoId) {
+    this.videoId = videoId;
+    this.element = this.createFacade();
+  }
+  
+  createFacade() {
+    const container = document.createElement('div');
+    container.className = 'youtube-facade';
+    container.innerHTML = `
+      <img src="https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg" 
+           alt="Video thumbnail" loading="lazy">
+      <button class="play-button" aria-label="Play video">▶</button>
+    `;
+    
+    container.addEventListener('click', () => this.loadVideo(), { once: true });
+    return container;
+  }
+  
+  loadVideo() {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${this.videoId}?autoplay=1`;
+    iframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope';
+    iframe.allowFullscreen = true;
+    
+    this.element.innerHTML = '';
+    this.element.appendChild(iframe);
+  }
+}
+
+// Replace all YouTube embeds with facades
+document.querySelectorAll('[data-youtube]').forEach(element => {
+  const facade = new YouTubeFacade(element.dataset.youtube);
+  element.replaceWith(facade.element);
+});
+```
+
+## Code Splitting and Dynamic Imports
+
+Modern bundlers enable route-based code splitting:
+
+```javascript
+// Instead of importing everything
+import HomePage from './pages/Home';
+import AboutPage from './pages/About';
+import ContactPage from './pages/Contact';
+
+// Use dynamic imports
+const routes = {
+  '/': () => import('./pages/Home'),
+  '/about': () => import('./pages/About'),
+  '/contact': () => import('./pages/Contact')
+};
+
+async function loadRoute(path) {
+  const moduleLoader = routes[path];
+  if (moduleLoader) {
+    const module = await moduleLoader();
+    return module.default;
+  }
+}
+```
+
+## Preloading and Prefetching
+
+Hint to the browser what's coming:
+
+```html
+<!-- Preload critical resources -->
+<link rel="preload" href="/fonts/main.woff2" as="font" crossorigin>
+<link rel="preload" href="/css/critical.css" as="style">
+
+<!-- Prefetch future navigation -->
+<link rel="prefetch" href="/js/about.js">
+<link rel="dns-prefetch" href="https://api.example.com">
+
+<!-- Preconnect to required origins -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+```
+
+## Measuring Impact
+
+Track these metrics before and after implementing delay loading:
+
+```javascript
+// Web Vitals monitoring
+import {getLCP, getFID, getCLS, getTTFB, getFCP} from 'web-vitals';
+
+function sendToAnalytics(metric) {
+  const { name, value, rating } = metric;
+  
+  // Send to your analytics endpoint
+  fetch('/api/metrics', {
+    method: 'POST',
+    body: JSON.stringify({ name, value, rating }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+getLCP(sendToAnalytics);
+getFID(sendToAnalytics);
+getCLS(sendToAnalytics);
+getTTFB(sendToAnalytics);
+getFCP(sendToAnalytics);
+```
+
+## Real-World Results
+
+Here's what proper JavaScript delay loading achieves:
+
+### Before Optimization
+```
+FCP: 3.2s
+LCP: 4.8s
+TBT: 1200ms
+TTI: 6.5s
+Lighthouse Score: 68
+```
+
+### After Optimization
+```
+FCP: 0.8s
+LCP: 1.2s
+TBT: 50ms
+TTI: 1.5s
+Lighthouse Score: 100
+```
+
+## Implementation Checklist
+
+```markdown
+## Initial Load (< 50KB JavaScript)
+- [ ] Critical CSS inlined
+- [ ] Minimal hydration code
+- [ ] Core polyfills only
+
+## On Window Load
+- [ ] Main application bundle
+- [ ] Router initialization
+- [ ] Primary interaction handlers
+
+## On User Interaction
+- [ ] Analytics scripts
+- [ ] Chat widgets
+- [ ] Social media SDKs
+- [ ] Video players
+
+## On Idle
+- [ ] Error reporting
+- [ ] Feature flags
+- [ ] A/B testing scripts
+- [ ] Prefetch next routes
+
+## Never Load (Unless Needed)
+- [ ] Admin interfaces
+- [ ] Debug tools
+- [ ] Rarely used features
+```
+
+## Common Pitfalls to Avoid
+
+### Don't Break Core Functionality
+Ensure your site works without JavaScript:
+```javascript
+// Bad: Requires JavaScript for navigation
+<button onclick="navigate('/about')">About</button>
+
+// Good: Progressive enhancement
+<a href="/about" data-navigate>About</a>
+```
+
+### Don't Create Layout Shifts
+Reserve space for lazy-loaded content:
+```css
+.lazy-component {
+  min-height: 200px; /* Prevent layout shift */
+  background: #f0f0f0; /* Loading state */
+}
+```
+
+### Don't Delay Too Much
+Some scripts need priority:
+```javascript
+// High priority scripts
+const highPriority = [
+  'error-boundary.js',
+  'security-checks.js',
+  'feature-detection.js'
+];
+
+// Load immediately after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  highPriority.forEach(loadScript);
+});
+```
+
+## Framework-Specific Solutions
+
+### Next.js
+```javascript
+import dynamic from 'next/dynamic';
+
+const DynamicComponent = dynamic(
+  () => import('../components/heavy-component'),
+  { 
+    loading: () => <p>Loading...</p>,
+    ssr: false 
+  }
+);
+```
+
+### React with Suspense
+```javascript
+const LazyComponent = React.lazy(() => import('./LazyComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <LazyComponent />
+    </Suspense>
+  );
+}
+```
+
+### Vue 3
+```javascript
+import { defineAsyncComponent } from 'vue';
+
+const AsyncComponent = defineAsyncComponent(() =>
+  import('./components/HeavyComponent.vue')
+);
+```
+
+## Conclusion
+
+Delaying JavaScript isn't about removing functionality—it's about delivering it at the right time. By loading critical code first and deferring everything else, you can achieve perfect Lighthouse scores while maintaining a rich, interactive experience.
+
+The key is understanding that not all JavaScript is created equal. Identify what's truly needed for the initial render, load that first, and delay everything else. Your users (and your Lighthouse scores) will thank you.
+
+Remember: The fastest JavaScript is the JavaScript that doesn't run until it's needed.

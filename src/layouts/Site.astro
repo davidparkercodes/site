@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css'
+import PasswordProtection from '@components/PasswordProtection.astro';
+
 const title = 'David Parker'
 const description = 'Engineer. Building fast, reliable systems and products.'
 const base = import.meta.env.BASE_URL
@@ -12,6 +14,8 @@ const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\/
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#0a0a0b" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+    <meta name="googlebot" content="noindex, nofollow" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={join(base, 'favicon.svg')} />
@@ -28,6 +32,7 @@ const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\/
     </style>
   </head>
   <body class="text-zinc-100 antialiased">
+    <PasswordProtection />
     <div class="min-h-dvh flex flex-col">
       <header class="px-6 md:px-8 py-6">
         <nav class="mx-auto max-w-4xl flex items-center justify-between gap-4">

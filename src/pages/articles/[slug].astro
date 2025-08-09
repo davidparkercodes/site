@@ -1,8 +1,13 @@
 ---
 import Site from '@layouts/Site.astro'
+import BackButton from '@components/BackButton.astro'
 import { CollectionEntry, getCollection } from 'astro:content'
 import { JsonLd } from '@utils/seo'
 import { site } from '@utils/site'
+
+const base = import.meta.env.BASE_URL
+const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+
 export async function getStaticPaths() {
   const posts = await getCollection('articles')
   return posts.filter(p => !p.data.draft).map(p => ({ params: { slug: p.slug }, props: { post: p } }))
@@ -22,10 +27,15 @@ const { Content } = await post.render()
     mainEntityOfPage: `${site.url}/articles/${post.slug}`
   })}></script>
   <section class="px-6 md:px-8 py-12">
-    <article class="mx-auto max-w-3xl prose dark:prose-invert">
-      <h1 class="font-mono">{post.data.title}</h1>
-      <p class="text-zinc-600 dark:text-zinc-400">{post.data.description}</p>
-      <Content />
+    <article class="mx-auto max-w-3xl">
+      <div class="mb-8">
+        <BackButton defaultText="Back to Articles" defaultHref={join(base, 'articles')} />
+      </div>
+      <div class="prose dark:prose-invert">
+        <h1 class="font-mono">{post.data.title}</h1>
+        <p class="text-zinc-600 dark:text-zinc-400">{post.data.description}</p>
+        <Content />
+      </div>
     </article>
   </section>
   <script>

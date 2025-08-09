@@ -1,0 +1,196 @@
+---
+import Site from '@layouts/Site.astro';
+---
+
+<Site>
+  <div class="px-6 md:px-8 pb-16">
+    <div class="mx-auto max-w-4xl">
+      <h1 class="font-mono text-3xl font-bold mb-8 text-cyan-400">Access Tracking</h1>
+      
+      <div class="mb-6">
+        <button id="refresh-data" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Refresh Data
+        </button>
+        <button id="export-data" class="ml-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Export JSON
+        </button>
+        <button id="clear-data" class="ml-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Clear All Data
+        </button>
+        <button id="logout" class="ml-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Logout (Debug)
+        </button>
+      </div>
+      
+      <div id="tracking-container" class="space-y-4">
+        <p class="text-zinc-400">Loading tracking data...</p>
+      </div>
+      
+      <div class="mt-8 p-4 bg-zinc-900 rounded-lg">
+        <h2 class="font-mono text-lg font-bold mb-4 text-cyan-400">Available Passwords</h2>
+        <div id="passwords-list" class="space-y-2 font-mono text-sm">
+          <p class="text-zinc-400">Loading passwords...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Site>
+
+<script>
+  import { passwordConfigs, clearAuthentication } from '@utils/passwords';
+  
+  interface TrackingData {
+    [key: string]: {
+      firstAccess: string;
+      accessCount: number;
+      lastAccess: string;
+    };
+  }
+  
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+  
+  function loadTrackingData(): void {
+    const container = document.getElementById('tracking-container');
+    if (!container) return;
+    
+    const storageKey = 'password_usage_tracking';
+    const rawData = localStorage.getItem(storageKey);
+    
+    if (!rawData) {
+      container.innerHTML = '<p class="text-zinc-400">No tracking data available yet.</p>';
+      return;
+    }
+    
+    try {
+      const trackingData: TrackingData = JSON.parse(rawData);
+      const entries = Object.entries(trackingData);
+      
+      if (entries.length === 0) {
+        container.innerHTML = '<p class="text-zinc-400">No tracking data available yet.</p>';
+        return;
+      }
+      
+      const sortedEntries = entries.sort((a, b) => {
+        const dateA = new Date(b[1].lastAccess || b[1].firstAccess).getTime();
+        const dateB = new Date(a[1].lastAccess || a[1].firstAccess).getTime();
+        return dateA - dateB;
+      });
+      
+      const html = sortedEntries.map(([identifier, data]) => {
+        const config = passwordConfigs.find(c => c.identifier === identifier);
+        const description = config?.description || 'Unknown';
+        
+        return `
+          <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-mono font-bold text-cyan-400">${identifier}</h3>
+              <span class="text-sm text-zinc-500">${description}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+              <div>
+                <span class="text-zinc-500">First Access:</span>
+                <div class="text-zinc-300">${formatDate(data.firstAccess)}</div>
+              </div>
+              <div>
+                <span class="text-zinc-500">Last Access:</span>
+                <div class="text-zinc-300">${data.lastAccess ? formatDate(data.lastAccess) : 'N/A'}</div>
+              </div>
+              <div>
+                <span class="text-zinc-500">Access Count:</span>
+                <div class="text-zinc-300">${data.accessCount}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    } catch (error) {
+      container.innerHTML = '<p class="text-red-400">Error loading tracking data.</p>';
+      console.error('Error parsing tracking data:', error);
+    }
+  }
+  
+  function loadPasswordsList(): void {
+    const container = document.getElementById('passwords-list');
+    if (!container) return;
+    
+    const html = passwordConfigs.map(config => {
+      return `
+        <div class="flex justify-between items-center p-2 bg-zinc-800 rounded">
+          <span class="text-cyan-400">${config.password}</span>
+          <span class="text-zinc-500">${config.description || config.identifier}</span>
+        </div>
+      `;
+    }).join('');
+    
+    container.innerHTML = html;
+  }
+  
+  function exportData(): void {
+    const storageKey = 'password_usage_tracking';
+    const rawData = localStorage.getItem(storageKey);
+    
+    if (!rawData) {
+      alert('No tracking data to export');
+      return;
+    }
+    
+    const trackingData = JSON.parse(rawData);
+    const exportData = {
+      exported_at: new Date().toISOString(),
+      tracking_data: trackingData,
+      password_configs: passwordConfigs.map(c => ({
+        identifier: c.identifier,
+        description: c.description
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tracking_export_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  function clearData(): void {
+    if (confirm('Are you sure you want to clear all tracking data? This cannot be undone.')) {
+      localStorage.removeItem('password_usage_tracking');
+      loadTrackingData();
+      alert('Tracking data cleared');
+    }
+  }
+  
+  function logout(): void {
+    clearAuthentication();
+    window.location.href = window.location.pathname + '?logout=true';
+  }
+  
+  function initAdmin(): void {
+    loadTrackingData();
+    loadPasswordsList();
+    
+    document.getElementById('refresh-data')?.addEventListener('click', loadTrackingData);
+    document.getElementById('export-data')?.addEventListener('click', exportData);
+    document.getElementById('clear-data')?.addEventListener('click', clearData);
+    document.getElementById('logout')?.addEventListener('click', logout);
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdmin);
+  } else {
+    initAdmin();
+  }
+</script>

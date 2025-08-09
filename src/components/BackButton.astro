@@ -1,0 +1,50 @@
+---
+export interface Props {
+  defaultText?: string
+  defaultHref?: string
+  className?: string
+}
+
+const { defaultText = 'Back', defaultHref = '/', className = '' } = Astro.props
+const base = import.meta.env.BASE_URL
+const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+const uniqueId = `back-button-${Math.random().toString(36).substr(2, 9)}`
+---
+
+<a 
+  id={uniqueId}
+  href={defaultHref} 
+  class={`text-sm font-mono text-zinc-500 dark:text-zinc-400 hover:underline ${className}`}
+  data-default-text={defaultText}
+  data-default-href={defaultHref}
+  data-base={base}
+>
+  ← {defaultText}
+</a>
+
+<script define:vars={{ uniqueId, base, defaultText, defaultHref }}>
+  const backButton = document.getElementById(uniqueId)
+  if (backButton) {
+    const params = new URLSearchParams(window.location.search)
+    const from = params.get('from')
+    
+    const join = (b, p) => `${b.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+    
+    let backText = `← ${defaultText}`
+    let backHref = defaultHref
+    
+    if (from === 'home') {
+      backText = '← Back to Home'
+      backHref = join(base, '/')
+    } else if (from === 'articles') {
+      backText = '← Back to Articles'
+      backHref = join(base, 'articles')
+    } else if (from === 'projects') {
+      backText = '← Back to Projects'
+      backHref = join(base, 'projects')
+    }
+    
+    backButton.textContent = backText
+    backButton.href = backHref
+  }
+</script>

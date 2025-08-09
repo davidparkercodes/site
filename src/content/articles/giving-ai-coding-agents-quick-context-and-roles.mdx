@@ -1,0 +1,536 @@
+---
+title: Giving AI Coding Agents Quick Context and Roles
+description: How to craft effective prompts and provide the right context to get production-quality code from AI agents on the first try.
+pubDate: 2025-01-09
+tags: [AI, Prompt Engineering, Developer Tools, Productivity]
+draft: false
+---
+
+The difference between getting mediocre boilerplate and production-ready code from AI coding agents isn't the model—it's how you set them up. A well-contextualized AI agent with a clear role can outperform a more advanced model with vague instructions.
+
+Here's how to turn AI coding agents into effective team members.
+
+## The Context Hierarchy
+
+Think of context as layers, from broad to specific:
+
+```typescript
+interface AgentContext {
+  role: string;           // Who they are
+  environment: string;    // Where they're working
+  standards: string[];    // How to work
+  task: string;          // What to do
+  constraints: string[]; // What not to do
+}
+```
+
+Each layer shapes the output. Skip a layer, and you'll get generic code that needs extensive revision.
+
+## Setting Effective Roles
+
+### The Power of Specific Personas
+
+Instead of asking for "code," assign a specific role:
+
+```markdown
+❌ Bad: "Write a React component"
+
+✅ Good: "You are a senior React developer at a fintech startup. 
+We prioritize type safety, accessibility, and performance. 
+Our stack uses TypeScript, TailwindCSS, and React Query."
+```
+
+The difference in output quality is dramatic:
+
+```typescript
+// Generic request result
+function UserList({ users }) {
+  return (
+    <div>
+      {users.map(user => (
+        <div key={user.id}>{user.name}</div>
+      ))}
+    </div>
+  );
+}
+
+// Role-based request result
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'viewer';
+  lastActive: Date;
+}
+
+interface UserListProps {
+  users: User[];
+  onUserSelect?: (user: User) => void;
+  loading?: boolean;
+  error?: Error | null;
+}
+
+export const UserList: React.FC<UserListProps> = ({ 
+  users, 
+  onUserSelect,
+  loading = false,
+  error = null 
+}) => {
+  if (loading) {
+    return (
+      <div role="status" aria-live="polite" className="animate-pulse">
+        <span className="sr-only">Loading users...</span>
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-16 bg-gray-200 rounded-lg mb-2" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-800">Failed to load users: {error.message}</p>
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        No users found
+      </div>
+    );
+  }
+
+  return (
+    <ul role="list" className="divide-y divide-gray-200">
+      {users.map((user) => (
+        <li 
+          key={user.id}
+          className="py-4 px-4 hover:bg-gray-50 transition-colors"
+        >
+          <button
+            onClick={() => onUserSelect?.(user)}
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
+            aria-label={`Select ${user.name}`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                <p className="text-sm text-gray-500">{user.email}</p>
+              </div>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                user.role === 'admin' 
+                  ? 'bg-purple-100 text-purple-800'
+                  : user.role === 'user'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {user.role}
+              </span>
+            </div>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+};
+```
+
+## Quick Context Templates
+
+### The Architecture Context
+
+```markdown
+You are a backend architect working on a microservices platform.
+
+Architecture:
+- Language: Go 1.21
+- Pattern: Clean Architecture with dependency injection
+- Database: PostgreSQL with GORM
+- Messaging: RabbitMQ for inter-service communication
+- API: RESTful with OpenAPI documentation
+- Testing: Table-driven tests with testify
+
+Standards:
+- All errors must be wrapped with context
+- Use structured logging with zerolog
+- Follow uber-go style guide
+- Minimum 80% test coverage
+- All public functions must have godoc comments
+```
+
+### The Performance Context
+
+```markdown
+You are a performance engineer optimizing a high-traffic Node.js application.
+
+Performance Requirements:
+- P99 latency < 100ms
+- Support 10,000 concurrent connections
+- Memory usage < 512MB under load
+- Zero downtime deployments
+
+Optimization Priorities:
+1. Minimize allocations
+2. Use streaming where possible
+3. Implement proper caching strategies
+4. Avoid blocking the event loop
+5. Use worker threads for CPU-intensive tasks
+
+Available Tools:
+- Redis for caching
+- Datadog for monitoring
+- k6 for load testing
+```
+
+### The Security Context
+
+```markdown
+You are a security-focused developer implementing authentication.
+
+Security Requirements:
+- OWASP Top 10 compliance
+- SOC 2 Type II requirements
+- GDPR compliance for EU users
+- PCI DSS for payment handling
+
+Must Implement:
+- Input validation on all endpoints
+- Rate limiting (100 req/min per IP)
+- SQL injection prevention
+- XSS protection
+- CSRF tokens
+- Proper secret management
+- Audit logging for all state changes
+
+Never:
+- Store passwords in plain text
+- Log sensitive data
+- Trust client input
+- Use MD5 or SHA1 for passwords
+- Expose internal error details
+```
+
+## Project-Specific Context
+
+### The Codebase Snapshot
+
+Provide a quick overview of the existing codebase:
+
+```markdown
+## Project: E-commerce Platform
+
+### Structure:
+```
+src/
+├── api/          # Express routes
+├── services/     # Business logic
+├── models/       # Sequelize models
+├── utils/        # Shared utilities
+├── middleware/   # Express middleware
+└── jobs/         # Background jobs (Bull)
+```
+
+### Key Patterns:
+- Repository pattern for data access
+- Service layer for business logic
+- DTOs for API contracts
+- Event-driven updates via Redis pub/sub
+
+### Existing Utilities:
+- `src/utils/logger.js` - Winston logger instance
+- `src/utils/cache.js` - Redis cache wrapper
+- `src/utils/validator.js` - Joi validation helpers
+- `src/utils/errors.js` - Custom error classes
+
+### Database Schema:
+- Users (id, email, password_hash, created_at)
+- Products (id, name, price, inventory, category_id)
+- Orders (id, user_id, total, status, created_at)
+- OrderItems (id, order_id, product_id, quantity, price)
+```
+
+## Task-Specific Context
+
+### Feature Implementation
+
+```markdown
+Task: Implement wishlist functionality
+
+Context:
+- Users can add/remove products to wishlist
+- Wishlist persists across sessions
+- Maximum 50 items per user
+- Show availability status in wishlist
+- Send notification when wishlisted item goes on sale
+
+Existing Code:
+- User authentication middleware in src/middleware/auth.js
+- Product model in src/models/Product.js
+- Notification service in src/services/NotificationService.js
+
+Requirements:
+- RESTful API endpoints
+- Optimistic UI updates
+- Real-time sync across devices
+- Handle race conditions for inventory
+```
+
+### Bug Fix Context
+
+```markdown
+Issue: Memory leak in image processing service
+
+Symptoms:
+- Memory usage grows to 2GB over 24 hours
+- Restart required daily
+- Occurs only in production, not staging
+
+Suspected Areas:
+- Image upload endpoint (POST /api/images)
+- Sharp library usage in src/services/ImageService.js
+- S3 upload stream handling
+
+Recent Changes:
+- Updated Sharp from 0.30 to 0.32 (3 days ago)
+- Added WebP format support (1 week ago)
+- Increased concurrent upload limit from 5 to 10
+
+Please investigate and fix the memory leak while maintaining current functionality.
+```
+
+### Code Review Context
+
+```markdown
+You are a senior developer reviewing code for a junior team member.
+
+Review Focus:
+- Security vulnerabilities
+- Performance bottlenecks
+- Code maintainability
+- Test coverage
+- Error handling
+
+Team Standards:
+- ESLint with Airbnb config
+- Prettier for formatting
+- Jest for testing
+- 90% code coverage requirement
+- All functions must have JSDoc
+
+Provide feedback that is:
+- Constructive and educational
+- Specific with examples
+- Prioritized by severity
+- Includes suggested improvements
+```
+
+## Constraint Contexts
+
+### Resource Constraints
+
+```markdown
+Constraints:
+- AWS Lambda with 3GB memory limit
+- 15-minute execution timeout
+- Cold start must be < 3 seconds
+- Bundle size must be < 50MB
+- Can only use native AWS SDK (no external HTTP)
+
+Optimize for:
+- Minimal cold start time
+- Efficient memory usage
+- Proper timeout handling
+- Graceful degradation
+```
+
+### Legacy System Constraints
+
+```markdown
+Working with Legacy System:
+- PHP 7.4 (cannot upgrade due to dependencies)
+- MySQL 5.7
+- No framework (custom MVC)
+- Global variables used extensively
+- Mixed procedural and OOP code
+- No existing tests
+
+Your Task:
+- Add new feature without breaking existing code
+- Gradually introduce modern patterns
+- Write tests for new code only
+- Document any technical debt created
+```
+
+## Multi-Agent Contexts
+
+When using multiple AI agents, give each a specific role:
+
+```markdown
+## Agent 1: Architect
+You design the system architecture and interfaces.
+Output: TypeScript interfaces and system design
+
+## Agent 2: Implementation Developer  
+You implement the designed interfaces with clean code.
+Input: Interfaces from Agent 1
+Output: Implementation with error handling
+
+## Agent 3: Test Engineer
+You write comprehensive tests for the implementation.
+Input: Implementation from Agent 2
+Output: Jest test suites with edge cases
+
+## Agent 4: Code Reviewer
+You review for bugs, security issues, and optimizations.
+Input: Code from Agent 2 and tests from Agent 3
+Output: Detailed review with must-fix and nice-to-have items
+```
+
+## Context Formatting Tips
+
+### Use Structured Formats
+
+```yaml
+# YAML for configuration context
+environment:
+  runtime: node:18-alpine
+  memory: 2GB
+  timeout: 30s
+  
+dependencies:
+  required:
+    - express: ^4.18.0
+    - postgresql: ^8.11.0
+  optional:
+    - redis: ^4.6.0
+    - datadog: ^2.0.0
+```
+
+### Provide Examples
+
+```markdown
+## API Response Format
+
+Success Response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "123",
+    "name": "Product Name"
+  },
+  "metadata": {
+    "timestamp": "2024-01-09T10:00:00Z",
+    "version": "1.0"
+  }
+}
+```
+
+Error Response:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PRODUCT_NOT_FOUND",
+    "message": "Product with ID 123 not found",
+    "details": {}
+  }
+}
+```
+```
+
+### Include Anti-Patterns
+
+```markdown
+## DO NOT:
+- Use synchronous file operations
+- Query database in loops
+- Store secrets in code
+- Mutate function parameters
+- Use `var` declarations
+- Ignore error returns
+- Use magic numbers
+- Create global variables
+```
+
+## Progressive Context Building
+
+Start minimal and add detail as needed:
+
+```markdown
+Level 1: "Fix the login bug"
+↓
+Level 2: "Fix the login bug where users get 500 error"
+↓  
+Level 3: "Fix the login bug where users get 500 error. 
+It happens when email contains special characters.
+Check src/controllers/auth.js line 45"
+↓
+Level 4: "Fix the login bug in src/controllers/auth.js line 45.
+Users with emails containing '+' get 500 error.
+The regex validation is rejecting valid emails.
+Update to RFC 5322 compliant validation.
+Add test cases for special characters."
+```
+
+## Context Persistence
+
+For ongoing projects, maintain context files:
+
+```markdown
+<!-- .ai-context/project.md -->
+# Project Context
+
+## Current Sprint
+Working on user authentication refactor
+
+## Recent Decisions
+- Switched from JWT to session-based auth
+- Added Redis for session storage
+- Implemented RBAC with Casbin
+
+## Known Issues
+- Slow query on user search (> 500ms)
+- Memory leak in websocket handler
+- Flaky test in PaymentService.test.js
+
+## Team Preferences
+- Functional programming over OOP
+- Composition over inheritance
+- Explicit over implicit
+- Pure functions where possible
+```
+
+## Measuring Context Effectiveness
+
+Track these metrics to improve your context:
+
+```typescript
+interface ContextMetrics {
+  firstAttemptSuccess: number;  // % of tasks completed without revision
+  clarificationNeeded: number;  // # of follow-up questions
+  codeRevisions: number;        // # of iterations needed
+  timeToComplete: number;       // Minutes from prompt to production
+  defectsIntroduced: number;    // Bugs found in AI-generated code
+}
+
+// Good context achieves:
+const targetMetrics = {
+  firstAttemptSuccess: 0.8,   // 80% success rate
+  clarificationNeeded: 1,      // Maximum 1 clarification
+  codeRevisions: 1,           // Maximum 1 revision
+  timeToComplete: 15,         // Under 15 minutes
+  defectsIntroduced: 0        // Zero defects
+};
+```
+
+## Conclusion
+
+Effective context isn't about writing longer prompts—it's about providing the right information in the right structure. Think of AI coding agents as new team members: they need to understand who they are, what the codebase looks like, what standards to follow, and what specific task to complete.
+
+The investment in crafting good context pays off immediately. A well-contextualized prompt that takes 2 minutes to write can save hours of revision and debugging. As AI models improve, the importance of context only grows—it's the difference between an AI that writes code and an AI that ships features.
+
+Remember: AI coding agents are as good as the context you give them. Give them a role, show them the environment, explain the standards, clarify the task, and watch them deliver production-quality code on the first try.

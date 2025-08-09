@@ -1,0 +1,23 @@
+---
+---
+
+<script>
+  import { isAuthenticated } from '@utils/passwords';
+  
+  function checkAuthentication() {
+    if (!isAuthenticated() && !window.location.pathname.includes('password-check')) {
+      const protectionElement = document.getElementById('password-protection');
+      if (protectionElement) {
+        protectionElement.style.display = 'flex';
+      }
+    }
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAuthentication);
+  } else {
+    checkAuthentication();
+  }
+  
+  document.addEventListener('astro:after-swap', checkAuthentication);
+</script>

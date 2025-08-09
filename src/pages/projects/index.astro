@@ -15,7 +15,7 @@ const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order)
         Projects
       </h1>
       <p class="mt-4 text-zinc-600 dark:text-zinc-400 max-w-prose">
-        A selection of projects I've built and contributed to. Each represents a unique challenge solved with modern technologies and thoughtful engineering.
+        I've worked on numerous projects throughout my career, but these represent recent work where I've served as the technical lead. Each showcases modern technologies and architectural decisions I've driven.
       </p>
     </div>
   </section>
@@ -24,7 +24,7 @@ const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order)
       <div class="grid grid-cols-1 gap-6">
         {sortedProjects.map((project) => (
           <a 
-            href={join(base, `projects/${project.slug}`)} 
+            href={join(base, `projects/${project.slug}?from=projects`)} 
             class="group rounded-lg border border-black/10 dark:border-white/10 p-6 interactive hover:bg-black/5 dark:hover:bg-white/5"
           >
             <div class="flex items-start justify-between">

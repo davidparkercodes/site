@@ -11,7 +11,7 @@ const projects = await getCollection('projects', ({ data }) => !data.draft && da
 const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order)
 
 const articles = await getCollection('articles', ({ data }) => !data.draft)
-const sortedArticles = articles.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3)
+const sortedArticles = articles.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 ---
 <Site>
   <script type="application/ld+json">
@@ -44,9 +44,12 @@ const sortedArticles = articles.sort((a, b) => b.data.pubDate.valueOf() - a.data
   <section class="px-6 md:px-8 pb-16">
     <div class="mx-auto max-w-4xl">
       <h2 class="text-2xl font-mono font-bold">Projects</h2>
+      <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+        I've worked on numerous projects throughout my career, but these represent recent work where I've served as the technical lead. Each showcases modern technologies and architectural decisions I've driven.
+      </p>
       <div class="mt-6 grid grid-cols-1 gap-4">
         {sortedProjects.map((project) => (
-          <a href={join(base, `projects/${project.slug}`)} class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
+          <a href={join(base, `projects/${project.slug}?from=home`)} class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="font-mono text-lg font-bold">{project.data.title}</div>
@@ -73,7 +76,7 @@ const sortedArticles = articles.sort((a, b) => b.data.pubDate.valueOf() - a.data
       <h2 class="text-2xl font-mono font-bold">Articles</h2>
       <div class="mt-6 grid grid-cols-1 gap-4">
         {sortedArticles.map((article) => (
-          <a href={join(base, `articles/${article.slug}`)} class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
+          <a href={join(base, `articles/${article.slug}?from=home`)} class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="font-mono text-lg font-bold">{article.data.title}</div>
@@ -95,14 +98,6 @@ const sortedArticles = articles.sort((a, b) => b.data.pubDate.valueOf() - a.data
           </a>
         ))}
       </div>
-      {articles.length > 3 && (
-        <div class="mt-6 text-center">
-          <a href={join(base, 'articles')} class="inline-flex items-center gap-1 font-mono text-sm text-cyan-400 hover:underline interactive">
-            View all articles
-            <span>→</span>
-          </a>
-        </div>
-      )}
     </div>
   </section>
 </Site>
