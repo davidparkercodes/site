@@ -9,11 +9,11 @@ const dev = import.meta.env.DEV
 const posts = await getArticles(dev)
 ---
 <Site>
-  <script is:raw>{JsonLd({ data: {
+  <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     itemListElement: posts.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${site.url}/articles/${p.slug}` }))
-  }}).$$render()}</script>
+  })}></script>
   <section class="px-6 md:px-8 py-16">
     <div class="mx-auto max-w-4xl">
       <h1 class="text-3xl font-mono">articles</h1>
