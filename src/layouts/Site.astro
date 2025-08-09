@@ -1,0 +1,87 @@
+---
+import '../styles/global.css'
+const title = 'David Parker'
+const description = 'Engineer. Building fast, reliable systems and products.'
+const base = import.meta.env.BASE_URL
+const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <style>
+      :root{color-scheme: light dark}
+      html, body{min-height:100%}
+      body{margin:0}
+      @media (prefers-color-scheme: light){ html{background:#ffffff}; body{background:#ffffff; color:#0a0a0b} }
+      @media (prefers-color-scheme: dark){ html{background:#0a0a0b}; body{background:#0a0a0b; color:#fafafa} }
+      [data-theme="light"] html{background:#ffffff}
+      [data-theme="light"] body{background:#ffffff; color:#0a0a0b}
+      [data-theme="dark"] html{background:#0a0a0b}
+      [data-theme="dark"] body{background:#0a0a0b; color:#fafafa}
+    </style>
+    <script>
+      (function(){
+        const k='theme';
+        const r=document.documentElement;
+        const s=localStorage.getItem(k);
+        const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const wantDark = s ? s==='dark' : prefersDark;
+        r.dataset.theme = wantDark ? 'dark' : 'light';
+        if (wantDark) r.classList.add('dark'); else r.classList.remove('dark');
+      })();
+    </script>
+  </head>
+  <body class="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 antialiased">
+    <div class="min-h-dvh flex flex-col">
+      <header class="px-6 md:px-8 py-6">
+        <nav class="mx-auto max-w-4xl flex items-center justify-between gap-4">
+<a href={join(base, '')} class="font-mono text-sm tracking-tight interactive">{title}</a>
+          <div class="flex items-center gap-3">
+            <a href={join(base, 'articles')} class="font-mono text-sm interactive hover:underline">articles</a>
+            <a href={join(base, 'contact')} class="font-mono text-sm interactive hover:underline">contact</a>
+            <button id="theme-toggle" aria-label="Toggle theme" class="interactive inline-flex items-center justify-center border border-black/10 dark:border-white/10 rounded-md w-8 h-8">
+              <svg class="block h-4 w-4 text-zinc-900 dark:hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <svg class="hidden h-4 w-4 text-zinc-100 dark:block" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </header>
+      <main class="flex-1">
+        <slot />
+      </main>
+      <footer class="px-6 md:px-8 py-10">
+        <div class="mx-auto max-w-4xl text-xs text-zinc-500">© {new Date().getFullYear()} {title}</div>
+      </footer>
+    </div>
+    <script>
+      (function(){
+        const k='theme';
+        const r=document.documentElement;
+        const b=document.getElementById('theme-toggle');
+        if(!b) return;
+        function set(t){
+          if(t==='dark') r.classList.add('dark'); else r.classList.remove('dark');
+          r.dataset.theme = t;
+          localStorage.setItem(k,t);
+        }
+        const s=localStorage.getItem(k);
+        const m=window.matchMedia('(prefers-color-scheme: dark)').matches;
+        set(s || (m?'dark':'light'));
+        b.addEventListener('click',()=>{ set(r.classList.contains('dark')?'light':'dark') });
+      })();
+    </script>
+  </body>
+</html>
+

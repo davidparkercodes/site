@@ -1,0 +1,33 @@
+---
+import Site from '@layouts/Site.astro'
+import { getArticles } from '@utils/content'
+import { JsonLd } from '@utils/seo'
+import { site } from '@utils/site'
+const base = import.meta.env.BASE_URL
+const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+const dev = import.meta.env.DEV
+const posts = await getArticles(dev)
+---
+<Site>
+  <script is:raw>{JsonLd({ data: {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: posts.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${site.url}/articles/${p.slug}` }))
+  }}).$$render()}</script>
+  <section class="px-6 md:px-8 py-16">
+    <div class="mx-auto max-w-4xl">
+      <h1 class="text-3xl font-mono">articles</h1>
+      <ul class="mt-6 space-y-4">
+        {posts.map(p => (
+          <li class="border border-black/10 dark:border-white/10 rounded-lg p-4 hover:bg-black/5 dark:hover:bg-white/5 interactive">
+            <a href={join(base, `articles/${p.slug}`)} class="block">
+              <div class="font-mono text-sm">{p.data.title}</div>
+              <div class="text-zinc-600 dark:text-zinc-400 text-sm">{p.data.description}</div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Site>
+
