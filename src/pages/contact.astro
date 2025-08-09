@@ -34,8 +34,6 @@ import Site from '@layouts/Site.astro'
             <a 
               href="mailto:david@redkey.io" 
               class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 interactive"
-              data-email="david"
-              data-domain="redkey.io"
             >
               <span>david</span><span>@</span><span>redkey.io</span>
             </a>
@@ -59,13 +57,5 @@ import Site from '@layouts/Site.astro'
       </div>
     </div>
   </section>
-  <style>
-    [data-email]::before {
-      content: attr(data-email);
-    }
-    [data-domain]::before {
-      content: "@" attr(data-domain);
-    }
-  </style>
 </Site>
 
