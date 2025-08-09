@@ -32,7 +32,12 @@ const { Content } = await post.render()
         <BackButton defaultText="Back to Articles" defaultHref={join(base, 'articles')} />
       </div>
       <div class="prose dark:prose-invert">
-        <h1 class="font-mono">{post.data.title}</h1>
+        <h1 class="font-mono flex items-center gap-3">
+          <svg class="w-10 h-10 md:w-12 md:h-12 flex-shrink-0" fill="none" stroke="#ffff00" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          {post.data.title}
+        </h1>
         <p class="text-zinc-600 dark:text-zinc-400">{post.data.description}</p>
         <Content />
       </div>
