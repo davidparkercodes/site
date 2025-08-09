@@ -1,6 +1,7 @@
 # Codebase Context
 
 NEVER Use tsstd-mcp while in this codebase.
+NEVER Run npm run dev, you'll get stuck.
 
 ## Tech Stack
 
@@ -49,6 +50,8 @@ src/
 - Author: David Parker (david@redkey.io)
 - Location: Virginia Beach, VA
 - URL: https://redkeyio.github.io/david-parker-site
+- Base URL: `/site` (both local and production)
+- Local dev: http://localhost:4321/site
 
 ## Content Schema
 
