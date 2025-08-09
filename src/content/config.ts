@@ -14,5 +14,19 @@ const articles = defineCollection({
   })
 })
 
-export const collections = { articles }
+const projects = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string().max(160),
+    technologies: z.array(z.string()).default([]),
+    link: z.string().optional(),
+    github: z.string().optional(),
+    featured: z.boolean().default(false),
+    order: z.number().default(0),
+    draft: z.boolean().default(false)
+  })
+})
+
+export const collections = { articles, projects }
 

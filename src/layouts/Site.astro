@@ -18,18 +18,25 @@ const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\/
     <link rel="alternate icon" href={join(base, 'favicon.ico')} />
     <style>
       :root{color-scheme: dark}
-      html{background:#0a0a0b}
-      body{background:#0a0a0b; color:#fafafa}
+      html{background:#000000}
+      body{
+        background: linear-gradient(135deg, #000000 0%, #1a0033 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color:#fafafa
+      }
     </style>
   </head>
-  <body class="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 antialiased">
+  <body class="text-zinc-100 antialiased">
     <div class="min-h-dvh flex flex-col">
       <header class="px-6 md:px-8 py-6">
         <nav class="mx-auto max-w-4xl flex items-center justify-between gap-4">
 <a href={join(base, '')} class="font-mono text-sm tracking-tight interactive">{title}</a>
           <div class="flex items-center gap-3">
-            <a href={join(base, 'articles')} class="font-mono text-sm interactive hover:underline">articles</a>
-            <a href={join(base, 'contact')} class="font-mono text-sm interactive hover:underline">contact</a>
+            <a href={join(base, '')} class="font-mono text-sm interactive hover:underline">Home</a>
+            <a href={join(base, 'projects')} class="font-mono text-sm interactive hover:underline">Projects</a>
+            <a href={join(base, 'articles')} class="font-mono text-sm interactive hover:underline">Articles</a>
+            <a href={join(base, 'contact')} class="font-mono text-sm interactive hover:underline">Contact</a>
           </div>
         </nav>
       </header>

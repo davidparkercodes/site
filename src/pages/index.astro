@@ -25,26 +25,27 @@ const join = (b: string, p: string) => `${b.replace(/\/$/, '')}/${p.replace(/^\/
       <p class="mt-4 text-zinc-600 dark:text-zinc-400 max-w-prose">
         Engineer focused on shipping fast, reliable, and polished experiences. I like crisp UI, good DX, and boringly robust systems.
       </p>
-      <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-<a href={join(base, 'articles')} class="interactive rounded-lg border border-black/10 dark:border-white/10 p-4 hover:bg-black/5 dark:hover:bg-white/5">
-          <div class="font-mono text-sm">articles</div>
-          <div class="text-zinc-600 dark:text-zinc-400">Notes and write-ups</div>
-        </a>
-<a href={join(base, 'contact')} class="interactive rounded-lg border border-black/10 dark:border-white/10 p-4 hover:bg-black/5 dark:hover:bg-white/5">
-          <div class="font-mono text-sm">contact</div>
-          <div class="text-zinc-600 dark:text-zinc-400">Say hello</div>
-        </a>
-      </div>
     </div>
   </section>
   <section class="px-6 md:px-8 pb-16">
     <div class="mx-auto max-w-4xl">
-      <h2 class="text-2xl font-mono">projects</h2>
+      <h2 class="text-2xl font-mono font-bold">Projects</h2>
       <div class="mt-6 grid grid-cols-1 gap-4">
-        <a href="#" class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
+        <a href={join(base, 'articles/dynamic-service-areas')} class="group rounded-lg border border-black/10 dark:border-white/10 p-5 interactive hover:bg-black/5 dark:hover:bg-white/5">
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">AI</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">Automation</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">Orchestration</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">Data Pipelines</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">Docker</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">Azure</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">C#</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">EF Core</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-900 text-white font-semibold">DbUp</span>
+          </div>
           <div class="flex items-start justify-between">
             <div>
-              <div class="font-mono text-sm">Dynamic Service Areas</div>
+              <div class="font-mono text-lg font-bold">Dynamic Service Areas</div>
               <p class="mt-1 text-zinc-600 dark:text-zinc-400">An AI-powered standalone application that uses automation and AI to generate tens of thousands of pages of content across 20+ websites.</p>
             </div>
             <span class="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400">→</span>
